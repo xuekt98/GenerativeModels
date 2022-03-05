@@ -1,0 +1,25 @@
+training:
+  batch_size: 16
+  n_epochs: 200000
+  n_iters: 50000001
+  noise_std: 0.01
+  anneal_power: 2.0
+
+data:
+  dataset: "FashionMNIST"
+  image_size: 28
+  channels: 1
+  logit_transform: false
+
+model:
+  nef: 32
+  ngf: 64
+  sigma_begin: 1
+  sigma_end: 0.01
+  num_classes: 10
+
+optimizer:
+  weight_decay: 0.000
+  optimizer: 'Adam'
+  lr: 0.001
+  beta1: 0.9

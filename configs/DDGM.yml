@@ -11,7 +11,7 @@ data:
 
 model:
   mid_dim: 1024
-  n_steps: 300
+  n_steps: 100
   schedule: 'linear'
   sigma_begin: 0.00001
   sigma_end: 0.01

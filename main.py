@@ -5,6 +5,7 @@ import torch
 from runners.NCSN_runner import NCSNRunner
 from runners.DDPM_runner import DDPMRunner
 from runners.DDGM_runner import DDGMRunner
+from runners.CDIFFUSE_runner import CDIFFUSERunner
 
 
 def dict2namespace(config):

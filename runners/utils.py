@@ -51,6 +51,9 @@ def get_dataset(dataset_config):
         transforms.ToTensor()
     ])
 
-    mnist_train = torchvision.datasets.FashionMNIST(root="./data", train=True, transform=trans, download=True)
-    mnist_test = torchvision.datasets.FashionMNIST(root="./data", train=False, transform=trans, download=True)
+    # mnist_train = torchvision.datasets.FashionMNIST(root="./data", train=True, transform=trans, download=True)
+    # mnist_test = torchvision.datasets.FashionMNIST(root="./data", train=False, transform=trans, download=True)
+    mnist_train = torchvision.datasets.MNIST(root="./data", train=True, transform=trans, download=True)
+    mnist_test = torchvision.datasets.MNIST(root="./data", train=False, transform=trans, download=True)
+
     return mnist_train, mnist_test

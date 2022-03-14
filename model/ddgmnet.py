@@ -41,11 +41,11 @@ class DDGMNet(nn.Module):
         self.in_dim = config.data.channels * config.data.image_size * config.data.image_size
         self.mid_dim = config.model.mid_dim
         self.P_DNNS = nn.ModuleList([nn.Sequential(nn.Linear(self.in_dim, self.mid_dim), nn.LeakyReLU(),
-                                     # nn.Linear(self.mid_dim, self.mid_dim), nn.LeakyReLU(),
+                                     nn.Linear(self.mid_dim, self.mid_dim), nn.LeakyReLU(),
                                      nn.Linear(self.mid_dim, self.mid_dim), nn.LeakyReLU(),
                                      nn.Linear(self.mid_dim, self.in_dim * 2)) for _ in range(config.model.n_steps - 1)])
         self.decoder_net = nn.Sequential(nn.Linear(self.in_dim, self.mid_dim * 2), nn.LeakyReLU(),
-                                         # nn.Linear(self.mid_dim * 2, self.mid_dim * 2), nn.LeakyReLU(),
+                                         nn.Linear(self.mid_dim * 2, self.mid_dim * 2), nn.LeakyReLU(),
                                          nn.Linear(self.mid_dim * 2, self.mid_dim * 2), nn.LeakyReLU(),
                                          nn.Linear(self.mid_dim * 2, self.in_dim), nn.Tanh())
         self.betas = self.make_beta_schedule(config.model.schedule, config.model.n_steps,

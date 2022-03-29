@@ -6,6 +6,7 @@ from runners.NCSN_runner import NCSNRunner
 from runners.DDPM_runner import DDPMRunner
 from runners.DDGM_runner import DDGMRunner
 from runners.CDIFFUSE_runner import CDIFFUSERunner
+from runners.SDE_runner import SDERunner
 
 
 def dict2namespace(config):
@@ -22,8 +23,8 @@ def dict2namespace(config):
 def parse_args_and_config():
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
 
-    parser.add_argument('--runner', type=str, default='NCSNRunner', help='The runner to execute')
-    parser.add_argument('--config', type=str, default='NCSN.yml', help='Path to the config file')
+    parser.add_argument('--runner', type=str, default='CDIFFUSERunner', help='The runner to execute')
+    parser.add_argument('--config', type=str, default='CDIFFUSE_face2comic.yml', help='Path to the config file')
     parser.add_argument('--seed', type=int, default=1234, help='Random seed')
     parser.add_argument('-o', '--output_path', type=str, default='output', help="The directory of image outputs")
     parser.add_argument('--load_model', action='store_true', default=False, help='Whether to resume training')

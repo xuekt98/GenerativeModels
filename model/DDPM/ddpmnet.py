@@ -140,6 +140,7 @@ def noise_like(shape, device, repeat=False):
     noise = lambda: torch.randn(shape, device=device)
     return repeat_noise() if repeat else noise()
 
+
 def cosine_beta_schedule(timesteps, s = 0.008):
     """
     cosine schedule
@@ -264,6 +265,7 @@ class DDPMNet(nn.Module):
         to_torch = partial(torch.tensor, dtype=torch.float32)
 
         self.register_buffer('betas', to_torch(betas))
+        # self.register_buffer('alphas', to_torch(alphas))
         self.register_buffer('alphas_cumprod', to_torch(alphas_cumprod))
         self.register_buffer('alphas_cumprod_prev', to_torch(alphas_cumprod_prev))
 
@@ -316,16 +318,22 @@ class DDPMNet(nn.Module):
         return model_mean, posterior_variance, posterior_log_variance
 
     @torch.no_grad()
-    def p_sample(self, x, t, clip_denoised=True, repeat_noise=False):
+    def p_sample(self, x, t, clip_denoised=True, repeat_noise=False, noise=None):
         b, *_, device = *x.shape, x.device
         model_mean, _, model_log_variance = self.p_mean_variance(x=x, t=t, clip_denoised=clip_denoised)
-        noise = noise_like(x.shape, device, repeat_noise)
+        if noise is None:
+            noise = noise_like(x.shape, device, repeat_noise)
         # no noise when t == 0
         nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x.shape) - 1)))
         return model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
 
+    # @torch.no_grad()
+    # def p_sample(self, x, t, clip_denoised=True, repeat_noise=False):
+    #     x_recon = self.predict_start_from_noise(x, t=t, noise=self.denoise_fn(x, t))
+    #     return (2. - torch.sqrt(1. - (extract(self.betas, t, x.shape)))) * x + 0.5 * extract(self.betas, t, x.shape) * x_recon
+
     @torch.no_grad()
-    def p_sample_loop(self, shape, perturbed_img=None):
+    def p_sample_loop(self, shape, perturbed_img=None, step=None):
         device = self.betas.device
 
         b = shape[0]
@@ -334,7 +342,7 @@ class DDPMNet(nn.Module):
             img = perturbed_img
 
         imgs = [img]
-        for i in tqdm(reversed(range(0, self.num_timesteps)), desc='sampling loop time step', total=self.num_timesteps):
+        for i in tqdm(reversed(range(0, self.num_timesteps if step is None else step)), desc='sampling loop time step', total=self.num_timesteps):
             img = self.p_sample(img, torch.full((b,), i, device=device, dtype=torch.long))
             imgs.append(img)
         return imgs

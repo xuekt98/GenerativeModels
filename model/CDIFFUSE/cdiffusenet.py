@@ -7,7 +7,7 @@ from functools import partial
 from tqdm.autonotebook import tqdm
 import numpy as np
 
-from model.ddpmnet import default, cosine_beta_schedule, extract, noise_like, SinusoidalPosEmb, ConvNextBlock, Residual, \
+from model.DDPM.ddpmnet import default, cosine_beta_schedule, extract, SinusoidalPosEmb, ConvNextBlock, Residual, \
     PreNorm, LinearAttention, Downsample, Upsample, exists
 
 
@@ -109,13 +109,18 @@ class CDiffuseNet(nn.Module):
         self.config = config
         self.image_size = self.config.data.image_size
         self.num_timesteps = self.config.model.n_steps
-        self.loss_type = 'l2'
+        self.beta_min = self.config.model.beta_min
+        self.beta_max = self.config.model.beta_max
+        self.loss_type = 'l1'
         self.channels = self.config.data.channels
 
-        self.denoise_fn = CondUnet(dim=config.model.dim, dim_mults=config.model.dim_mults)
+        self.denoise_fn = CondUnet(dim=config.model.dim, dim_mults=config.model.dim_mults, channels=self.channels)
         # self.denoise_fn = Unet(dim=config.model.dim)
 
-        betas = cosine_beta_schedule(config.model.n_steps)
+        # betas = cosine_beta_schedule(config.model.n_steps)
+        # pdb.set_trace()
+        # betas = torch.linspace(self.beta_min, self.beta_max, self.num_timesteps)
+        betas = np.linspace(self.beta_min, self.beta_max, self.num_timesteps)
         alphas = 1. - betas
         alphas_cumprod = np.cumprod(alphas, axis=0)
         alphas_cumprod_prev = np.append(1., alphas_cumprod[:-1])
@@ -162,7 +167,7 @@ class CDiffuseNet(nn.Module):
         sqrt_alphas_cumprod_tminus = extract(self.sqrt_alphas_cumprod, tminus, x.shape)
         sqrt_one_minus_alphas_cumprod_tminus = extract(self.sqrt_one_minus_alphas_cumprod, tminus, x.shape)
         m_tminus = sqrt_one_minus_alphas_cumprod_tminus / torch.sqrt(sqrt_alphas_cumprod_tminus)
-        sigma2_tminus = 1. - alphas_cumprod_tminus * (1. + m_tminus ** 2)
+        sigma2_tminus = 1. - alphas_cumprod_tminus * (1. + m_tminus**2)
 
         sigma2_tminus_t = sigma2_t - ((1. - m_t) / (1. - m_tminus))**2 * alphas_t * sigma2_tminus
 
@@ -174,10 +179,10 @@ class CDiffuseNet(nn.Module):
 
         cet = ((1. - m_tminus) * sigma2_tminus_t * sqrt_one_minus_alphas_cumprod_t) / (sigma2_t * torch.sqrt(alphas_t))
 
-        sigma_noise = sigma2_tminus_t * sigma2_t / sigma2_tminus
+        sigma2_noise = sigma2_tminus_t * sigma2_t / sigma2_tminus
 
         return cxt * x + cyt * y - cet * self.denoise_fn(x, y, tminus) + \
-               torch.sqrt(sigma_noise) * torch.randn(x.shape, device=x.device)
+               torch.sqrt(sigma2_noise) * torch.randn(x.shape, device=x.device)
 
     @torch.no_grad()
     def p_sample_loop(self, y_start):

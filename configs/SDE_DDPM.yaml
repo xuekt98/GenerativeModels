@@ -1,0 +1,44 @@
+training:
+  sde: 'vpsde'
+  continuous: True
+  batch_size: 16
+  n_epochs: 200
+  n_iters: 50000001
+
+data:
+  dataset: "FashionMNIST"
+  image_size: 32
+  channels: 1
+  logit_transform: False
+  centered: True
+
+model:
+  sigma_min: 0.01
+  sigma_max: 50
+  num_scales: 1000
+  beta_min: 0.1
+  beta_max: 20.
+  dropout: 0.1
+  embedding_type: 'fourier'
+  name: 'ddpm'
+  scale_by_sigma: False
+  ema_rate: 0.9999
+  normalization: 'GroupNorm'
+  nonlinearity: 'swish'
+  nf: 128
+  ch_mult: !!python/tuple
+    - 1
+    - 2
+    - 2
+    - 2
+  num_res_blocks: 2
+  attn_resolutions: !!python/tuple
+    - 16
+  resamp_with_conv: True
+  conditional: True
+
+optimizer:
+  weight_decay: 0.000
+  optimizer: 'Adam'
+  lr: 0.001
+  beta1: 0.9

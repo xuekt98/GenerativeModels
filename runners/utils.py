@@ -3,6 +3,7 @@ import torchvision
 import torchvision.transforms as transforms
 import os
 from datetime import datetime
+from local_dataset.face2comic import Face2ComicDataset
 
 
 def mkdir(dir):
@@ -51,9 +52,15 @@ def get_dataset(dataset_config):
         transforms.ToTensor()
     ])
 
-    # mnist_train = torchvision.datasets.FashionMNIST(root="./data", train=True, transform=trans, download=True)
-    # mnist_test = torchvision.datasets.FashionMNIST(root="./data", train=False, transform=trans, download=True)
-    mnist_train = torchvision.datasets.MNIST(root="./data", train=True, transform=trans, download=True)
-    mnist_test = torchvision.datasets.MNIST(root="./data", train=False, transform=trans, download=True)
+    train_dataset, test_dataset = None, None
+    if dataset_config.dataset == 'face2comic':
+        train_dataset = Face2ComicDataset('train', (dataset_config.image_size, dataset_config.image_size))
+        test_dataset = Face2ComicDataset('test', (dataset_config.image_size, dataset_config.image_size))
+    elif dataset_config.dataset == 'MNIST':
+        train_dataset = torchvision.datasets.MNIST(root="./data", train=True, transform=trans, download=True)
+        test_dataset = torchvision.datasets.MNIST(root="./data", train=False, transform=trans, download=True)
+    elif dataset_config.dataset == 'FashionMNIST':
+        train_dataset = torchvision.datasets.FashionMNIST(root="./data", train=True, transform=trans, download=True)
+        test_dataset = torchvision.datasets.FashionMNIST(root="./data", train=False, transform=trans, download=True)
 
-    return mnist_train, mnist_test
+    return train_dataset, test_dataset

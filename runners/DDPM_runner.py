@@ -1,4 +1,3 @@
-import pdb
 import traceback
 
 import torch
@@ -8,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import save_image, make_grid
 
-from model.ddpmnet import DDPMNet
+from model.DDPM.ddpmnet import DDPMNet
 from runners.utils import get_optimizer, get_dataset, make_dirs, mkdir
 
 from tqdm.autonotebook import tqdm

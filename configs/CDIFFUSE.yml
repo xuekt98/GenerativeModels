@@ -5,7 +5,7 @@ training:
 
 data:
   dataset: "FashionMNIST"
-  image_size: 28
+  image_size: 32
   channels: 1
   logit_transform: false
 
@@ -16,7 +16,9 @@ model:
     - 1
     - 2
     - 4
-  n_steps: 1000
+  n_steps: 200
+  beta_min: 0.0001
+  beta_max: 0.0095
 
 optimizer:
   weight_decay: 0.000

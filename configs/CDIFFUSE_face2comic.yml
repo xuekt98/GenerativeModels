@@ -4,10 +4,10 @@ training:
   n_iters: 50000001
 
 data:
-  dataset: "FashionMNIST"
-  image_size: 28
-  channels: 1
-  logit_transform: False
+  dataset: "face2comic"
+  image_size: 128
+  channels: 3
+  logit_transform: false
 
 model:
   dim: 64
@@ -16,7 +16,9 @@ model:
     - 1
     - 2
     - 4
-  n_steps: 1000
+  n_steps: 200
+  beta_min: 0.0001
+  beta_max: 0.0095
 
 optimizer:
   weight_decay: 0.000

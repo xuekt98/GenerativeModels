@@ -20,36 +20,50 @@ class DDPMRunner():
         self.config = config
 
         self.args.image_path, self.args.model_path, self.args.log_path, self.args.sample_path, \
-        self.args.now = make_dirs(self.args, 'DDPM')
+        self.args.now = make_dirs(self.args, 'DDPM', 'test')
+        self.grid_size = 4
 
+    @torch.no_grad()
     def save_images(self, all_samples, sample_path, grid_size=4):
         imgs = []
         for i, sample in enumerate(tqdm(all_samples, total=len(all_samples), desc='saving images')):
-            sample = sample.view(grid_size**2, self.config.data.channels, self.config.data.image_size,
-                                 self.config.data.image_size)
-            if self.config.data.logit_transform:
-                sample = torch.sigmoid(sample)
+            if i % 5 == 0 or i % 50 == 0:
+                sample = sample.view(self.config.training.batch_size, self.config.data.channels,
+                                     self.config.data.image_size, self.config.data.image_size)
+                if self.config.data.logit_transform:
+                    sample = torch.sigmoid(sample)
 
-            image_grid = make_grid(sample, nrow=grid_size)
-            if i % 10 == 0:
+                image_grid = make_grid(sample, nrow=grid_size)
                 im = Image.fromarray(
-                    image_grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy())
-                imgs.append(im)
+                    image_grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+                )
+                if i % 5 == 0:
+                    imgs.append(im)
 
-            if i % 20 == 0:
-                save_image(image_grid, os.path.join(sample_path, 'image_{}.png'.format(i)))
+                if i % 50 == 0:
+                    im.save(os.path.join(sample_path, 'image_{}.png'.format(i)))
+
+        image_grid = make_grid(all_samples[len(all_samples) - 1], nrow=self.grid_size)
+        im = Image.fromarray(
+            image_grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+        )
+        im.save(os.path.join(sample_path, 'image_{}.png'.format(len(all_samples))))
 
         imgs[0].save(os.path.join(sample_path, "movie.gif"), save_all=True, append_images=imgs[1:],
                      duration=1, loop=0)
 
-    def ddpm_sample(self, ddpmnet, sample_path, suffix, x=None, grid_size=4):
+    @torch.no_grad()
+    def ddpm_sample(self, ddpmnet, sample_path, suffix, x=None, step=None, grid_size=4):
         sample_path = os.path.join(sample_path, suffix)
         mkdir(sample_path)
+
         if x is not None:
-            # pdb.set_trace()
-            t = torch.full((x.shape[0],), self.config.model.n_steps - 1).to(self.config.device)
+            if step is None:
+                step = self.config.model.n_steps - 1
+            t = torch.full((x.shape[0],), step).to(self.config.device)
+
             perturbed_x = ddpmnet.q_sample(x, t)
-            all_samples = ddpmnet.p_sample_loop(perturbed_x.shape, perturbed_x)
+            all_samples = ddpmnet.p_sample_loop(perturbed_x.shape, perturbed_x, step)
         else:
             all_samples = ddpmnet.sample(grid_size ** 2)
         self.save_images(all_samples, sample_path)
@@ -142,3 +156,9 @@ class DDPMRunner():
                     print('traceback.print_exc():')
                     traceback.print_exc()
                     print('traceback.format_exc():\n%s' % traceback.format_exc())
+        states = [
+            ddpmnet.state_dict(),
+            optimizer.state_dict(),
+        ]
+        torch.save(states, os.path.join(self.args.model_path, 'checkpoint_{}.pth'.format(step)))
+        torch.save(states, os.path.join(self.args.model_path, 'checkpoint.pth'))

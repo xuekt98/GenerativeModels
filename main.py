@@ -7,6 +7,8 @@ from runners.DDPM_runner import DDPMRunner
 from runners.DDGM_runner import DDGMRunner
 from runners.CDIFFUSE_runner import CDIFFUSERunner
 from runners.SDE_runner import SDERunner
+from runners.BrownianBridge_runner import BrownianBridgeRunner
+from runners.BBDDPM_runner import BBDDPMRunner
 
 
 def dict2namespace(config):

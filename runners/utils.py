@@ -3,7 +3,12 @@ import torchvision
 import torchvision.transforms as transforms
 import os
 from datetime import datetime
+
+from local_dataset.butterfly import ButterflyDataset
+from local_dataset.cityscape_pairs import CityScapePairsDataset
 from local_dataset.face2comic import Face2ComicDataset
+from local_dataset.cityscape import CityScapeDataset
+from local_dataset.fish import FishDataset
 
 
 def mkdir(dir):
@@ -62,5 +67,17 @@ def get_dataset(dataset_config):
     elif dataset_config.dataset == 'FashionMNIST':
         train_dataset = torchvision.datasets.FashionMNIST(root="./data", train=True, transform=trans, download=True)
         test_dataset = torchvision.datasets.FashionMNIST(root="./data", train=False, transform=trans, download=True)
+    elif dataset_config.dataset == 'cityscape_pairs':
+        train_dataset = CityScapePairsDataset('train', (dataset_config.image_size, dataset_config.image_size))
+        test_dataset = CityScapePairsDataset('test', (dataset_config.image_size, dataset_config.image_size))
+    elif dataset_config.dataset == 'butterfly':
+        train_dataset = ButterflyDataset('train', (dataset_config.image_size, dataset_config.image_size))
+        test_dataset = ButterflyDataset('test', (dataset_config.image_size, dataset_config.image_size))
+    elif dataset_config.dataset == 'cityscape':
+        train_dataset = CityScapeDataset('train', (dataset_config.image_size, dataset_config.image_size))
+        test_dataset = CityScapeDataset('val', (dataset_config.image_size, dataset_config.image_size))
+    elif dataset_config.dataset == 'fish':
+        train_dataset = FishDataset('train', (dataset_config.image_size, dataset_config.image_size))
+        test_dataset = FishDataset('test', (dataset_config.image_size, dataset_config.image_size))
 
     return train_dataset, test_dataset

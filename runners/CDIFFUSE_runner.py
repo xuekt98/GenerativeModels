@@ -1,3 +1,4 @@
+import pdb
 import traceback
 
 import torch
@@ -24,24 +25,31 @@ class CDIFFUSERunner():
         self.args.now = make_dirs(self.args, 'CDIFFUSE', 'test')
 
     def save_images(self, all_samples, sample_path, grid_size=4):
+        # pdb.set_trace()
         imgs = []
         for i, sample in enumerate(tqdm(all_samples, total=len(all_samples), desc='saving images')):
-            sample = sample.view(16, self.config.data.channels, self.config.data.image_size,
-                                 self.config.data.image_size)
-            if self.config.data.logit_transform:
-                sample = torch.sigmoid(sample)
+            if i % 5 == 0 or i % 50 == 0:
+                sample = sample.view(16, self.config.data.channels, self.config.data.image_size,
+                                     self.config.data.image_size)
 
-            image_grid = make_grid(sample, nrow=grid_size)
-            if i % 2 == 0:
+                if self.config.data.logit_transform:
+                    sample = torch.sigmoid(sample)
+
+                image_grid = make_grid(sample, nrow=grid_size)
                 im = Image.fromarray(
-                    image_grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy())
-                imgs.append(im)
+                    image_grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+                )
+                if i % 5 == 0:
+                    imgs.append(im)
 
-            if i % 10 == 0:
-                save_image(image_grid, os.path.join(sample_path, 'image_{}.png'.format(i)))
+                if i % 50 == 0:
+                    im.save(os.path.join(sample_path, 'image_{}.png'.format(i)))
 
-        image_grid = make_grid(all_samples[len(all_samples) - 2], nrow=grid_size)
-        save_image(image_grid, os.path.join(sample_path, 'image_{}.png'.format(len(all_samples))))
+        image_grid = make_grid(all_samples[len(all_samples) - 1], nrow=grid_size)
+        im = Image.fromarray(
+            image_grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+        )
+        im.save(os.path.join(sample_path, 'image_{}.png'.format(len(all_samples))))
 
         imgs[0].save(os.path.join(sample_path, "movie.gif"), save_all=True, append_images=imgs[1:],
                      duration=1, loop=0)
@@ -126,7 +134,7 @@ class CDIFFUSERunner():
                         test_loss = cdiffusenet(test_X, test_X_cond)
                         writer.add_scalar('test_loss', test_loss, step)
 
-                    if step % 1000 == 0:
+                    if step % 2000 == 0:
                         cdiffusenet.eval()
                         sample_path = os.path.join(self.args.sample_path, str(step))
                         mkdir(sample_path)

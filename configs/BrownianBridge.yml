@@ -1,0 +1,65 @@
+training:
+  batch_size: 16
+  n_epochs: 1000
+  n_iters: 50000001
+
+data:
+  # dataset: "face2comic"
+  # dataset: "cityscape_pairs"
+  # dataset: "butterfly"
+  # dataset: "cityscape"
+  dataset: 'fish'
+  image_size: 128
+  channels: 3
+  logit_transform: false
+
+model:
+  name: 'BB_2' # 'BB', 'BB_2'
+  mt_type: 'linear' # 'linear', 'sin'
+  var_type: 'quard' # 'quard', 'sin'
+
+  # name: 'CDBB' # 'CDBB', 'CDBB_2'
+  # mt_type: 'aa'; # 'tTaa', 'aa', 'linear', 'CD'
+  # var_type: 'CD'
+  dim: 64
+  loss_type: 'l2'
+  dim_mults: !!python/tuple
+    - 1
+    - 2
+    - 4
+    - 8
+## BB 200 steps
+#  n_steps: 200
+#  beta_min: 0.0001
+#  beta_max: 0.3
+
+## BB 500 steps
+#  n_steps: 500
+#  beta_min: 0.000001
+#  beta_max: 0.3
+
+## BB 1000 steps
+  n_steps: 1000
+  beta_min: 0.0001
+  beta_max: 0.25
+
+## CD 200 steps
+#  n_steps: 200
+#  beta_min: 0.0001
+#  beta_max: 0.0095
+
+## CDBB 200 steps
+#  n_steps: 200
+#  beta_min: 0.0001
+#  beta_max: 0.0068
+
+## CDBB 500 steps
+#  n_steps: 500
+#  beta_min: 0.0001
+#  beta_max: 0.00267
+
+optimizer:
+  weight_decay: 0.000
+  optimizer: 'Adam'
+  lr: 0.0001
+  beta1: 0.9

@@ -159,7 +159,7 @@ class Unet(nn.Module):
         self,
         dim,
         out_dim = None,
-        dim_mults=(1, 2, 4),
+        dim_mults=(1, 2, 4, 8),
         channels = 1,
         with_time_emb = True
     ):
@@ -251,10 +251,10 @@ class DDPMNet(nn.Module):
         self.config = config
         self.image_size = self.config.data.image_size
         self.num_timesteps = self.config.model.n_steps
-        self.loss_type = 'l2'
+        self.loss_type = self.config.model.loss_type
         self.channels = self.config.data.channels
 
-        self.denoise_fn = Unet(dim=config.model.dim, dim_mults=config.model.dim_mults)
+        self.denoise_fn = Unet(dim=config.model.dim, dim_mults=config.model.dim_mults, channels=self.channels)
         # self.denoise_fn = Unet(dim=config.model.dim)
 
         betas = cosine_beta_schedule(config.model.n_steps)
@@ -327,11 +327,6 @@ class DDPMNet(nn.Module):
         nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x.shape) - 1)))
         return model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
 
-    # @torch.no_grad()
-    # def p_sample(self, x, t, clip_denoised=True, repeat_noise=False):
-    #     x_recon = self.predict_start_from_noise(x, t=t, noise=self.denoise_fn(x, t))
-    #     return (2. - torch.sqrt(1. - (extract(self.betas, t, x.shape)))) * x + 0.5 * extract(self.betas, t, x.shape) * x_recon
-
     @torch.no_grad()
     def p_sample_loop(self, shape, perturbed_img=None, step=None):
         device = self.betas.device
@@ -342,13 +337,15 @@ class DDPMNet(nn.Module):
             img = perturbed_img
 
         imgs = [img]
-        for i in tqdm(reversed(range(0, self.num_timesteps if step is None else step)), desc='sampling loop time step', total=self.num_timesteps):
+        if step is None:
+            step = self.num_timesteps - 1
+        for i in tqdm(reversed(range(0, step + 1)), desc='sampling loop time step', total=step + 1):
             img = self.p_sample(img, torch.full((b,), i, device=device, dtype=torch.long))
             imgs.append(img)
         return imgs
 
     @torch.no_grad()
-    def sample(self, batch_size = 16):
+    def sample(self, batch_size=16):
         image_size = self.image_size
         channels = self.channels
         return self.p_sample_loop((batch_size, channels, image_size, image_size))

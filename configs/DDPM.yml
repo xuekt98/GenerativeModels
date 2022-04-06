@@ -4,9 +4,10 @@ training:
   n_iters: 50000001
 
 data:
-  dataset: "FashionMNIST"
-  image_size: 28
-  channels: 1
+  # dataset: "cityscape_pairs"
+  dataset: 'fish'
+  image_size: 128
+  channels: 3
   logit_transform: False
 
 model:
@@ -16,10 +17,12 @@ model:
     - 1
     - 2
     - 4
+    - 8
   n_steps: 1000
+  loss_type: 'l2'
 
 optimizer:
   weight_decay: 0.000
   optimizer: 'Adam'
-  lr: 0.001
+  lr: 0.0001
   beta1: 0.9

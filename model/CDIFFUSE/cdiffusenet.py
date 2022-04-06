@@ -161,13 +161,13 @@ class CDiffuseNet(nn.Module):
         sqrt_alphas_cumprod_t = extract(self.sqrt_alphas_cumprod, t, x.shape)
         sqrt_one_minus_alphas_cumprod_t = extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape)
         m_t = sqrt_one_minus_alphas_cumprod_t / torch.sqrt(sqrt_alphas_cumprod_t)
-        sigma2_t = 1. - alphas_cumprod_t * (1. + m_t**2)
+        sigma2_t = (1. - alphas_cumprod_t) * (1. - sqrt_alphas_cumprod_t)
 
         alphas_cumprod_tminus = extract(self.alphas_cumprod, tminus, x.shape)
         sqrt_alphas_cumprod_tminus = extract(self.sqrt_alphas_cumprod, tminus, x.shape)
         sqrt_one_minus_alphas_cumprod_tminus = extract(self.sqrt_one_minus_alphas_cumprod, tminus, x.shape)
         m_tminus = sqrt_one_minus_alphas_cumprod_tminus / torch.sqrt(sqrt_alphas_cumprod_tminus)
-        sigma2_tminus = 1. - alphas_cumprod_tminus * (1. + m_tminus**2)
+        sigma2_tminus = (1. - alphas_cumprod_tminus) * (1. - sqrt_alphas_cumprod_tminus)
 
         sigma2_tminus_t = sigma2_t - ((1. - m_t) / (1. - m_tminus))**2 * alphas_t * sigma2_tminus
 
@@ -179,10 +179,13 @@ class CDiffuseNet(nn.Module):
 
         cet = ((1. - m_tminus) * sigma2_tminus_t * sqrt_one_minus_alphas_cumprod_t) / (sigma2_t * torch.sqrt(alphas_t))
 
-        sigma2_noise = sigma2_tminus_t * sigma2_t / sigma2_tminus
+        sigma2_noise = sigma2_tminus_t * sigma2_tminus / sigma2_t
 
-        return cxt * x + cyt * y - cet * self.denoise_fn(x, y, tminus) + \
-               torch.sqrt(sigma2_noise) * torch.randn(x.shape, device=x.device)
+        if i == 0:
+            return cxt * x + cyt * y - cet * self.denoise_fn(x, y, t)
+        else:
+            return cxt * x + cyt * y - cet * self.denoise_fn(x, y, t) + \
+                torch.sqrt(sigma2_noise) * torch.randn(x.shape, device=x.device)
 
     @torch.no_grad()
     def p_sample_loop(self, y_start):
@@ -210,7 +213,7 @@ class CDiffuseNet(nn.Module):
         sqrt_alphas = extract(self.sqrt_alphas_cumprod, t, x_start.shape)
         sqrt_one_minus_alphas = extract(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape)
         m_t = sqrt_one_minus_alphas / torch.sqrt(sqrt_alphas)
-        sigma_t = torch.sqrt(1. - (1. + m_t**2) * alphas)
+        sigma_t = torch.sqrt((1. - alphas) * (1. - sqrt_alphas))
 
         return (
             sqrt_alphas * ((1. - m_t) * x_start + m_t * y_start) + sigma_t * noise,

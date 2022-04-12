@@ -171,3 +171,51 @@ def get_fish_paths():
                         imagepath = os.path.join(subsubdirpath, imagelist[k])
                         f_test_img.write(imagepath)
                         f_test_img.write('\n')
+
+def get_bdd_paths():
+    train_img_txt = '../data/bdd/train_img.txt'
+    test_img_txt = '../data/bdd/test_img.txt'
+    train_seg_txt = '../data/bdd/train_seg.txt'
+    test_seg_txt = '../data/bdd/test_seg.txt'
+    rootdir = '/media/x/disk/dataset/bdd/bdd100k_seg/bdd100k/seg'
+
+    with open(train_img_txt, 'w') as f_train_img, \
+            open(test_img_txt, 'w') as f_test_img, \
+            open(train_seg_txt, 'w') as f_train_seg, \
+            open(test_seg_txt, 'w') as f_test_seg:
+        f_train_img.truncate(0)
+        f_test_img.truncate(0)
+        f_train_seg.truncate(0)
+        f_test_seg.truncate(0)
+
+        image_dir = os.path.join(rootdir, 'images/train')
+        image_list = os.listdir(image_dir)
+        image_list.sort()
+        for i in range(len(image_list)):
+            image_path = os.path.join(image_dir, image_list[i])
+            f_train_img.write(image_path)
+            f_train_img.write('\n')
+
+        image_dir = os.path.join(rootdir, 'images/val')
+        image_list = os.listdir(image_dir)
+        image_list.sort()
+        for i in range(len(image_list)):
+            image_path = os.path.join(image_dir, image_list[i])
+            f_test_img.write(image_path)
+            f_test_img.write('\n')
+
+        image_dir = os.path.join(rootdir, 'color_labels/train')
+        image_list = os.listdir(image_dir)
+        image_list.sort()
+        for i in range(len(image_list)):
+            image_path = os.path.join(image_dir, image_list[i])
+            f_train_seg.write(image_path)
+            f_train_seg.write('\n')
+
+        image_dir = os.path.join(rootdir, 'color_labels/val')
+        image_list = os.listdir(image_dir)
+        image_list.sort()
+        for i in range(len(image_list)):
+            image_path = os.path.join(image_dir, image_list[i])
+            f_test_seg.write(image_path)
+            f_test_seg.write('\n')

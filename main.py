@@ -9,6 +9,7 @@ from runners.CDIFFUSE_runner import CDIFFUSERunner
 from runners.SDE_runner import SDERunner
 from runners.BrownianBridge_runner import BrownianBridgeRunner
 from runners.BBDDPM_runner import BBDDPMRunner
+from runners.VQBB_runner import VQBBRunner
 
 
 def dict2namespace(config):

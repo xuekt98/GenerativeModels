@@ -4,6 +4,7 @@ import torchvision.transforms as transforms
 import os
 from datetime import datetime
 
+from local_dataset.bdd import BddDataset
 from local_dataset.butterfly import ButterflyDataset
 from local_dataset.cityscape_pairs import CityScapePairsDataset
 from local_dataset.face2comic import Face2ComicDataset
@@ -79,5 +80,8 @@ def get_dataset(dataset_config):
     elif dataset_config.dataset == 'fish':
         train_dataset = FishDataset('train', (dataset_config.image_size, dataset_config.image_size))
         test_dataset = FishDataset('test', (dataset_config.image_size, dataset_config.image_size))
+    elif dataset_config.dataset == 'bdd':
+        train_dataset = BddDataset('train', (dataset_config.image_size, dataset_config.image_size))
+        test_dataset = BddDataset('test', (dataset_config.image_size, dataset_config.image_size))
 
     return train_dataset, test_dataset

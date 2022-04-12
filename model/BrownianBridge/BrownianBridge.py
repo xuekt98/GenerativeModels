@@ -370,6 +370,7 @@ class BrownianBridgeNet_2(nn.Module):
         return loss
 
     def forward(self, x, y):
+        # pdb.set_trace()
         b, c, h, w, device, img_size, = *x.shape, x.device, self.image_size
         assert h == img_size and w == img_size, f'height and width of image must be {img_size}'
         t = torch.randint(0, self.num_timesteps, (b,), device=device).long()

@@ -5,22 +5,32 @@ from PIL import Image
 
 
 class ImagePathDataset(Dataset):
-    def __init__(self, image_paths, image_size=(256,256), to_rgb=False):
+    def __init__(self, image_paths, image_size=(256,256), to_rgb=False, flip=False):
         self.image_size = image_size
         self.image_paths = image_paths
         self._length = len(image_paths)
         self.to_rgb = to_rgb
-        self.transform = transforms.Compose([
-                            transforms.Resize(self.image_size),
-                            transforms.ToTensor()
-                        ])
+        self.flip = flip
 
     def __len__(self):
+        if self.flip:
+            return self._length * 2
         return self._length
 
     def __getitem__(self, index):
+        p = 0.0
+        if index >= self._length:
+            index = index - self._length
+            p = 1.0
+
+        transform = transforms.Compose([
+            transforms.RandomHorizontalFlip(p=p),
+            transforms.Resize(self.image_size),
+            transforms.ToTensor()
+        ])
+
         img_path = self.image_paths[index]
-        image=None
+        image = None
         try:
             image = Image.open(img_path)
         except BaseException as e:
@@ -28,6 +38,6 @@ class ImagePathDataset(Dataset):
 
         if self.to_rgb:
             image = image.convert('RGB')
-        image = self.transform(image)
+        image = transform(image)
         return image
 

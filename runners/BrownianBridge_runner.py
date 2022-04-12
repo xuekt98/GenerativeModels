@@ -116,8 +116,6 @@ class BrownianBridgeRunner():
         for epoch in pbar:
             for i, (X, X_cond) in enumerate(train_loader):
                 try:
-                    if step >= self.config.training.n_iters:
-                        return 0
                     step += 1
                     brownian_bridge_net.train()
                     X = X.to(self.config.device)
